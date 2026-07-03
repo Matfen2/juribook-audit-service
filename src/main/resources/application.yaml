@@ -2,10 +2,6 @@ spring:
   application:
     name: audit-service
 
-  # ═══════════════════════════════════════════════════════════
-  #  Port 5436 en local, voir docker-compose.yml (postgres-audit)
-  #  En conteneur Docker, surchargé par SPRING_DATASOURCE_URL
-  # ═══════════════════════════════════════════════════════════
   datasource:
     url: jdbc:postgresql://localhost:5436/auditdb
     username: juribook
@@ -21,11 +17,6 @@ spring:
   flyway:
     enabled: true
 
-  # ═══════════════════════════════════════════════════════════
-  #  Kafka : jamais désactivé, comme notification-service, c'est
-  #  la raison d'être de ce service. Sans broker disponible en
-  #  local, l'app démarre quand même (retente en arrière-plan).
-  # ═══════════════════════════════════════════════════════════
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
@@ -36,3 +27,21 @@ spring:
 
 server:
   port: 8085
+
+# ═══════════════════════════════════════════════════════════
+#  JWT : Même secret que les autres services métier.
+#  audit-service ne génère pas de JWT, il valide uniquement les
+#  tokens émis par l'auth-service. GET /api/audit exige un rôle ADMIN.
+# ═══════════════════════════════════════════════════════════
+jwt:
+  secret: juribook-secret-key-must-be-at-least-256-bits-long-for-hs256
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
+  show-actuator: false
