@@ -84,6 +84,12 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<!-- ═══ Sécurité - validation JWT émis par l'auth-service ═══ -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
