@@ -58,29 +58,33 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+
+		<!-- ═══ Test — un SEUL starter générique pour le reste (JUnit 5,
+		     Mockito, AssertJ), pas 5 artefacts *-test par module. Les 4
+		     suivants n'existent PAS dans l'écosystème Maven et ont été
+		     retirés : spring-boot-starter-actuator-test,
+		     spring-boot-starter-data-jpa-test, spring-boot-starter-flyway-test,
+		     spring-boot-starter-kafka-test.
+		     spring-boot-starter-webmvc-test EST réel en revanche (confirmé
+		     via auth-service/lawyer-service pom.xml + inspection directe du
+		     jar spring-boot-test-autoconfigure-4.1.0, qui NE contient PAS
+		     WebMvcTest) : Spring Boot 4 a déplacé @WebMvcTest dans ce
+		     starter compagnon dédié, package
+		     org.springframework.boot.webmvc.test.autoconfigure. ═══ -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-flyway-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-kafka-test</artifactId>
+			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 

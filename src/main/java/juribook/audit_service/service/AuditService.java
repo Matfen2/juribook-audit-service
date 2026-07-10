@@ -106,4 +106,19 @@ public class AuditService {
         return auditEntryRepository.search(userId, from, to, pageable)
                 .map(AuditEntryResponse::from);
     }
+
+    /**
+     * Historique complet d'une réservation, triée
+     * chronologiquement croissant (timeline). Pas de pagination,
+     * une réservation ne génère jamais un volume d'événements qui la
+     * justifierait (création, confirmation/refus, documents, annulation :
+     * quelques unités, jamais des dizaines).
+     */
+    @Transactional(readOnly = true)
+    public List<AuditEntryResponse> getBookingHistory(Long bookingId) {
+        return auditEntryRepository.findByBookingId(bookingId)
+                .stream()
+                .map(AuditEntryResponse::from)
+                .toList();
+    }
 }

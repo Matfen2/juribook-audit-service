@@ -32,7 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Tests d'intégration Web pour AnalyticsController.
  *
- * ⚠️ Mêmes leçons que AdminUserControllerTest (auth-service):
+ * ⚠️ Mêmes leçons que AdminUserControllerTest (auth-service, Sprints
+ * 7.1-7.3) :
  *   - @Import(SecurityConfig.class) nécessaire, @WebMvcTest ne scanne
  *     pas les @Configuration classiques par défaut.
  *   - Authentification via SecurityMockMvcRequestPostProcessors.user(...)
@@ -41,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *     d'AuthenticationEntryPoint custom dans SecurityConfig.
  *
  * JwtAuthenticationFilter d'audit-service ne dépend que de JwtService
- * (pas de UserRepository, ce service n'a pas de table User, le rôle
+ * (pas de UserRepository — ce service n'a pas de table User, le rôle
  * est extrait directement du JWT), donc un seul @MockitoBean nécessaire
  * ici, contrairement à auth-service qui en demandait deux.
  */

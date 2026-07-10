@@ -13,11 +13,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Controller REST de consultation du journal d'audit.
@@ -68,5 +70,30 @@ public class AuditController {
 
     ) {
         return ResponseEntity.ok(auditService.search(userId, from, to, page, size));
+    }
+
+    // ── GET /api/audit/booking/{bookingId} ─────
+    @GetMapping("/booking/{bookingId}")
+    @Operation(
+        summary = "Historique complet d'une réservation",
+        description = """
+            Retourne TOUS les événements mentionnant cette réservation
+            (bookingId), tous topics confondus, triés chronologiquement
+            croissant — une timeline complète (création, confirmation/
+            refus, documents, annulation), pas de pagination.
+
+            ⚠️ Recherche par expression régulière sur le payload JSON brut
+            (aucune colonne bookingId dédiée en base) : ne renvoie que les
+            événements dont le producteur a effectivement inclus ce champ
+            dans le payload.
+            """
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Historique retourné (liste vide si aucun événement trouvé)"),
+        @ApiResponse(responseCode = "401", description = "Token absent ou invalide"),
+        @ApiResponse(responseCode = "403", description = "Rôle insuffisant (ADMIN requis)")
+    })
+    public ResponseEntity<List<AuditEntryResponse>> getBookingHistory(@PathVariable Long bookingId) {
+        return ResponseEntity.ok(auditService.getBookingHistory(bookingId));
     }
 }
