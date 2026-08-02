@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════
-#  GitHub Actions CI/CD - audit-service
+#  GitHub Actions CI/CD — audit-service
 #  Pipeline : build → test → docker build & push (Scaleway) → deploy staging
 #  Déclenché sur push develop/features/test et pull request vers develop
 #
@@ -22,12 +22,38 @@ jobs:
 
   # ─────────────────────────────────────────────
   #  Build + Tests Maven
-  #  Pas de PostgreSQL en CI - les tests unitaires
-  #  utilisent Mockito (pas de contexte Spring)
+  #  Un Postgres ephemere est demarre (voir services: ci-dessous)
+  #  car le test genere par Spring Initializr (xxxApplicationTests
+  #  .contextLoads) charge le contexte Spring complet, qui declenche
+  #  une migration Flyway au demarrage.
   # ─────────────────────────────────────────────
   build-and-test:
     name: Build & Test
     runs-on: ubuntu-latest
+
+    # Postgres ephemere pour les tests necessitant un contexte Spring
+    # complet (ex: xxxApplicationTests.contextLoads, genere par defaut
+    # par Spring Initializr) - Flyway a besoin d'une vraie base pour
+    # migrer au demarrage du contexte.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: auditdb
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/auditdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
 
     steps:
       - name: Checkout
