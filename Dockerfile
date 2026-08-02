@@ -1,25 +1,44 @@
-# Dockerfile pour le microservice audit de JuriBook
-# Étape 1 : Build avec Maven
+# ═══════════════════════════════════════════════════════════
+#  Dockerfile - juribook-audit-service (production)
+#  Multi-stage build : Maven → JRE Alpine, non-root, healthcheck
+# ═══════════════════════════════════════════════════════════
+
+# ── Étape 1 : Build avec Maven ────────────────────────────
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# 1) D'abord les fichiers de configuration Maven, pour télécharger les dépendances (cachées dans Docker) avant de copier le code source :
+# Copier le pom.xml en premier pour profiter du cache Docker :
+# les dépendances Maven ne sont re-téléchargées que si pom.xml change
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
-# 2) Ensuite le code source, pour que les changements dans src ne réinitialisent pas le cache des dépendances :
+# Copier le code source et compiler
 COPY src ./src
 RUN mvn clean package -DskipTests -B
 
-# Étape 2 : Runtime avec JRE
-FROM eclipse-temurin:21-jre AS runtime
+# ── Étape 2 : Runtime, minimal et non-root ────────────────
+FROM eclipse-temurin:21-jre-alpine AS runtime
 WORKDIR /app
 
-# Copier le JAR généré depuis l'étape de build
-COPY --from=build /app/target/*.jar app.jar
+# curl est nécessaire pour le healthcheck (absent par défaut sur
+# eclipse-temurin:*-jre-alpine). Utilisateur dédié, non-root — ne
+# jamais faire tourner un service en production avec les droits
+# root dans le conteneur.
+RUN apk add --no-cache curl && \
+    addgroup -S juribook && adduser -S juribook -G juribook
 
-# Exposer le port de l'application
+COPY --from=build --chown=juribook:juribook /app/target/*.jar app.jar
+
+USER juribook
+
 EXPOSE 8085
 
-# Commande pour démarrer l'application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Définition des options JVM pour limiter l'utilisation de la mémoire à 75% de la mémoire disponible du conteneur
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=75.0"
+
+# Healthcheck pour Docker : vérifie que l'application est bien démarrée et répond
+HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8085/actuator/health || exit 1
+
+# Lancement de l'application avec les options JVM définies 
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
